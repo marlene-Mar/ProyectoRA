@@ -5,18 +5,30 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: "Assets/Scenes/Men\xFA.unity"
     guid: 49ef1e81990bd0845a61659326118286
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Trucos.unity
     guid: 301f04140df21d642a933c46c2ac3d97
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Dogs.unity
     guid: 424a4ce601de9664d8f6aa6dc9c2240d
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Tips.unity
     guid: 5e7dde50d114a824cb6fa72c36de2f1e
+  - enabled: 0
+    path: Assets/Scenes/Sentado.unity
+    guid: 07d65477d1cbadf4da88c46831128cda
+  - enabled: 0
+    path: Assets/Scenes/Ent_Sentado.unity
+    guid: 56b3ee0e2fe615b43aacdaaae52f52c3
+  - enabled: 0
+    path: Assets/Scenes/Pata.unity
+    guid: 56414c72d0491394db6628910632f9f5
+  - enabled: 0
+    path: Assets/Scenes/Trufosos.unity
+    guid: 37a728e6f95866149a7f4aa6930a50f0
   - enabled: 0
     path: Assets/SamplesResources/Scenes/0-Main.unity
     guid: a09cb257d566c489595b16ab37547666
