@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <QCARConfig>
   <Tracking>
-    <ImageTarget name="saltar" size="1.000000 1.014184" />
+    <ImageTarget name="pomeranian" size="1.000000 1.000000" />
+    <ImageTarget name="pastoralm" size="1.000000 1.000000" />
+    <ImageTarget name="bulldoging" size="1.000000 1.000000" />
+    <ImageTarget name="cachorro" size="1.000000 1.000000" />
     <ImageTarget name="pata" size="1.000000 1.000000" />
     <ImageTarget name="sentado" size="1.000000 1.000000" />
-    <ImageTarget name="shetlandsheepdogart" size="1.000000 1.000000" />
     <ImageTarget name="chihuahua" size="1.000000 1.000000" />
   </Tracking>
 </QCARConfig>

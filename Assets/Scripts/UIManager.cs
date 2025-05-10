@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-// Añadido el namespace necesario para SceneManager
 using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
@@ -18,6 +17,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject InsPata;
     [SerializeField] private GameObject EntSentado;
     [SerializeField] private GameObject Trufoso;
+    [SerializeField] private GameObject OtrosPerros;
 
     // Referencia a la cámara que activas/desactivas
     [SerializeField] private GameObject camara;
@@ -26,6 +26,8 @@ public class UIManager : MonoBehaviour
     public int Chihuahua = 0;
     public int SentadoSel = 0;
     public int PataSel = 0;
+
+    private string urlMarcadores = "https://drive.google.com/drive/folders/1Ik577slklY2LfqS4HS4PPy8ICC8acpBN?usp=sharing";
 
     private void Awake()
     {
@@ -50,17 +52,16 @@ public class UIManager : MonoBehaviour
     // Función para mostrar solo un panel específico
     public void ShowOnlyPanel(GameObject panelToShow)
     {
-        Menu.SetActive(panelToShow == Menu);
-        Trucos.SetActive(panelToShow == Trucos);
-        Perros.SetActive(panelToShow == Perros);
-        Tips.SetActive(panelToShow == Tips);
-        InsSentado.SetActive(panelToShow == InsSentado);
-        InsPata.SetActive(panelToShow == InsPata);
-        EntSentado.SetActive(panelToShow == EntSentado);
-        Trufoso.SetActive(panelToShow == Trufoso);
+        if (Menu) Menu.SetActive(panelToShow == Menu);
+        if (Trucos) Trucos.SetActive(panelToShow == Trucos);
+        if (Perros) Perros.SetActive(panelToShow == Perros);
+        if (Tips) Tips.SetActive(panelToShow == Tips);
+        if (InsSentado) InsSentado.SetActive(panelToShow == InsSentado);
+        if (InsPata) InsPata.SetActive(panelToShow == InsPata);
+        if (EntSentado) EntSentado.SetActive(panelToShow == EntSentado);
+        if (Trufoso) Trufoso.SetActive(panelToShow == Trufoso);
+        if (OtrosPerros) OtrosPerros.SetActive(panelToShow == OtrosPerros);
     }
-
-    // Funciones corregidas para usar ShowOnlyPanel en lugar de SceneManager
 
     public void GoToHome()
     {
@@ -82,6 +83,11 @@ public class UIManager : MonoBehaviour
         ShowOnlyPanel(Tips);
     }
 
+    public void DownloadMarcadores()
+    {
+        Application.OpenURL(urlMarcadores);  
+    }
+
     public void chihuahua()
     {
         Debug.Log("Chihuahua seleccionado");
@@ -89,11 +95,18 @@ public class UIManager : MonoBehaviour
         camara.SetActive(true);
     }
 
-    public void pastor()
+    public void otrosPerros()
     {
-        Debug.Log("Pastor seleccionado");
-        ShowOnlyPanel(Trufoso);
+        Debug.Log("Perro seleccionado sin animar");
+        ShowOnlyPanel(OtrosPerros);
         camara.SetActive(true);
+    }
+
+    public void back()
+    {
+        Debug.Log("Volviendo al menú de selección de perro");
+        ShowOnlyPanel(Perros);
+        camara.SetActive(false);
     }
 
     public void OK()
@@ -130,7 +143,7 @@ public class UIManager : MonoBehaviour
         {
             Debug.Log("Entrenando Chihuahua");
             // Panel de entrenamiento pata pendiente
-            // ShowOnlyPanel(pataEntrenamientoPanel);
+            //ShowOnlyPanel(pataEntrenamientoPanel);
             camara.SetActive(true);
         }
         else
