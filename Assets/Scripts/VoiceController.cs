@@ -2,7 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Android; //Permisos en Android
+using UnityEngine.Events; // Para eventos
 using UnityEngine.UI; // Para referencia a componentes UI
+using System;
 
 public class VoiceController : MonoBehaviour
 {
@@ -10,6 +12,7 @@ public class VoiceController : MonoBehaviour
     [SerializeField] private int micStatus = 0; // 0 = mic apagado, 1 = mic encendido
     [SerializeField] private int permissionStatus = 0; // 0=sin permiso, 1=con permiso
 
+    //Variables de estado del microfono
     private bool isMicrophoneOn = false; //indica si el microfono esta activo
     private bool hasMicPermission = false; //indica si el microfono tiene permiso
     private AudioClip microphoneClip; //almacena el audio grabado 
@@ -18,7 +21,7 @@ public class VoiceController : MonoBehaviour
     //Panel de solicitud de permisos de microfono 
     [SerializeField] private GameObject PermisosUsuario;
 
-    // Referencias a los botones
+    //Botonoes para activar y descativar el audio
     [SerializeField] private Button btnActivarMic;
     [SerializeField] private Button btnDesactivarMic;
 
@@ -26,269 +29,300 @@ public class VoiceController : MonoBehaviour
     [SerializeField] private GameObject indicadorMicActivo;
     [SerializeField] private GameObject indicadorMicInactivo;
 
-    public void ShowOnlyPanel(GameObject panelToShow)
+    // Idioma por defecto para el reconocimiento de voz
+    [SerializeField] private string lenguaje = "es-MX"; // Idioma por defecto
+
+    [Serializable]
+
+    public struct VoiceRecognitionResult
     {
-        PermisosUsuario.SetActive(panelToShow == PermisosUsuario);
+        public string command;
+        public UnityEvent isValid;
     }
 
-    void Start()
+    public VoiceRecognitionResult[] voiceCommands;
+
+    private Dictionary<string, UnityEvent> commands = new Dictionary<string, UnityEvent>();
+
+    private void Awake()
     {
-        // Verifica si la plataforma es Android
-        if (Application.platform != RuntimePlatform.Android)
+//#if UNITY_ANDROID
+//        // Verifica si la plataforma es Android
+//        if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
+//        {
+//            RequestMicrophonePermission();
+//        }
+//#endif
+        // Inicializa el diccionario de comandos
+        foreach (var command in voiceCommands)
         {
-            Debug.LogWarning("Este script está diseñado para dispositivos Android.");
-        }
-
-        // Asignar listeners a los botones si están referenciados
-        if (btnActivarMic != null)
-        {
-            btnActivarMic.onClick.AddListener(ActivarMicrofono);
-        }
-
-        if (btnDesactivarMic != null)
-        {
-            btnDesactivarMic.onClick.AddListener(DesactivarMicrofono);
-        }
-
-        // Solicita permisos de micrófono al inicio
-        RequestMicrophonePermission();
-
-        // Actualiza la UI inicial
-        UpdateButtonUI();
-    }
-
-    // Método para activar el micrófono (para el botón de activar)
-    public void ActivarMicrofono()
-    {
-        if (!hasMicPermission)
-        {
-            RequestMicrophonePermission();
-            return;
-        }
-
-        if (!isMicrophoneOn)
-        {
-            isMicrophoneOn = true;
-            StartMicrophone();
-            UpdateButtonUI();
+            commands[command.command] = command.isValid;
         }
     }
 
-    // Método para desactivar el micrófono (para el botón de desactivar)
-    public void DesactivarMicrofono()
-    {
-        if (isMicrophoneOn)
-        {
-            isMicrophoneOn = false;
-            StopMicrophone();
-            UpdateButtonUI();
-        }
+    void Start(){ 
+    
     }
+    //public void ShowOnlyPanel(GameObject panelToShow)
+    //{
+    //    PermisosUsuario.SetActive(panelToShow == PermisosUsuario);
+    //}
 
-    public void RequestMicrophonePermission()
-    {
-        if (PermisosUsuario != null)
-        {
-            PermisosUsuario.SetActive(true);
-        }
+    //void Start()
+    //{
+    //    // Verifica si la plataforma es Android
+    //    if (Application.platform != RuntimePlatform.Android)
+    //    {
+    //        Debug.LogWarning("Este script está diseñado para dispositivos Android.");
+    //    }
 
-        if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
-        {
-            Permission.RequestUserPermission(Permission.Microphone);
-            StartCoroutine(CheckPermissionAfterRequest());
-        }
-        else
-        {
-            hasMicPermission = true;
-            permissionStatus = 1; // Permiso concedido
+    //    // Asignar listeners a los botones si están referenciados
+    //    if (btnActivarMic != null)
+    //    {
+    //        btnActivarMic.onClick.AddListener(ActivarMicrofono);
+    //    }
 
-            if (PermisosUsuario != null)
-            {
-                PermisosUsuario.SetActive(false);
-            }
+    //    if (btnDesactivarMic != null)
+    //    {
+    //        btnDesactivarMic.onClick.AddListener(DesactivarMicrofono);
+    //    }
 
-            InitializeMicrophone();
-        }
-    }
+    //    // Solicita permisos de micrófono al inicio
+    //    RequestMicrophonePermission();
 
-    IEnumerator CheckPermissionAfterRequest()
-    {
-        // Espera un momento para que el usuario responda a la solicitud de permiso
-        yield return new WaitForSeconds(0.5f);
+    //    // Actualiza la UI inicial
+    //    UpdateButtonUI();
+    //}
 
-        // Verifica si el permiso fue concedido
-        if (Permission.HasUserAuthorizedPermission(Permission.Microphone))
-        {
-            hasMicPermission = true;
-            permissionStatus = 1; // Permiso concedido
+    //// Método para activar el micrófono (para el botón de activar)
+    //public void ActivarMicrofono()
+    //{
+    //    if (!hasMicPermission)
+    //    {
+    //        RequestMicrophonePermission();
+    //        return;
+    //    }
 
-            if (PermisosUsuario != null)
-            {
-                PermisosUsuario.SetActive(false);
-            }
+    //    if (!isMicrophoneOn)
+    //    {
+    //        isMicrophoneOn = true;
+    //        StartMicrophone();
+    //        UpdateButtonUI();
+    //    }
+    //}
 
-            InitializeMicrophone();
-        }
-        else
-        {
-            Debug.LogWarning("El usuario no concedió permiso para usar el micrófono.");
-            hasMicPermission = false;
-            permissionStatus = 0; // Permiso denegado
-        }
+    //// Método para desactivar el micrófono (para el botón de desactivar)
+    //public void DesactivarMicrofono()
+    //{
+    //    if (isMicrophoneOn)
+    //    {
+    //        isMicrophoneOn = false;
+    //        StopMicrophone();
+    //        UpdateButtonUI();
+    //    }
+    //}
 
-        UpdateButtonUI();
-    }
+    //public void RequestMicrophonePermission()
+    //{
+    //    if (PermisosUsuario != null)
+    //    {
+    //        PermisosUsuario.SetActive(true);
+    //    }
 
-    void InitializeMicrophone()
-    {
-        // Obtiene la lista de micrófonos disponibles
-        if (Microphone.devices.Length > 0)
-        {
-            selectedMicrophone = Microphone.devices[0]; // Usa el primer micrófono disponible
-            Debug.Log("Micrófono seleccionado: " + selectedMicrophone);
-        }
-        else
-        {
-            Debug.LogError("No se detectaron micrófonos en el dispositivo.");
-        }
-    }
+    //    if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
+    //    {
+    //        Permission.RequestUserPermission(Permission.Microphone);
+    //        StartCoroutine(CheckPermissionAfterRequest());
+    //    }
+    //    else
+    //    {
+    //        hasMicPermission = true;
+    //        permissionStatus = 1; // Permiso concedido
 
-    public void ToggleMicrophone()
-    {
-        if (!hasMicPermission)
-        {
-            RequestMicrophonePermission();
-            return;
-        }
+    //        if (PermisosUsuario != null)
+    //        {
+    //            PermisosUsuario.SetActive(false);
+    //        }
 
-        isMicrophoneOn = !isMicrophoneOn;
+    //        InitializeMicrophone();
+    //    }
+    //}
 
-        if (isMicrophoneOn)
-        {
-            StartMicrophone();
-        }
-        else
-        {
-            StopMicrophone();
-        }
+    //IEnumerator CheckPermissionAfterRequest()
+    //{
+    //    // Espera un momento para que el usuario responda a la solicitud de permiso
+    //    yield return new WaitForSeconds(0.5f);
 
-        UpdateButtonUI();
-    }
+    //    // Verifica si el permiso fue concedido
+    //    if (Permission.HasUserAuthorizedPermission(Permission.Microphone))
+    //    {
+    //        hasMicPermission = true;
+    //        permissionStatus = 1; // Permiso concedido
 
-    void StartMicrophone()
-    {
-        try
-        {
-            if (selectedMicrophone != null)
-            {
-                // Iniciar grabación con el micrófono (longitud de 10 segundos con loop)
-                microphoneClip = Microphone.Start(selectedMicrophone, true, 10, 44100);
-                Debug.Log("Micrófono activado");
-                micStatus = 1;
+    //        if (PermisosUsuario != null)
+    //        {
+    //            PermisosUsuario.SetActive(false);
+    //        }
 
-                // Actualizar indicadores visuales si existen
-                if (indicadorMicActivo != null) indicadorMicActivo.SetActive(true);
-                if (indicadorMicInactivo != null) indicadorMicInactivo.SetActive(false);
-            }
-            else
-            {
-                Debug.LogError("No hay micrófono seleccionado.");
-                isMicrophoneOn = false;
-                micStatus = 0;
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Error al iniciar el micrófono: " + e.Message);
-            isMicrophoneOn = false;
-            micStatus = 0;
-        }
-    }
+    //        InitializeMicrophone();
+    //    }
+    //    else
+    //    {
+    //        Debug.LogWarning("El usuario no concedió permiso para usar el micrófono.");
+    //        hasMicPermission = false;
+    //        permissionStatus = 0; // Permiso denegado
+    //    }
 
-    void StopMicrophone()
-    {
-        try
-        {
-            if (selectedMicrophone != null && Microphone.IsRecording(selectedMicrophone))
-            {
-                Microphone.End(selectedMicrophone);
-                Debug.Log("Micrófono desactivado");
-                micStatus = 0;
+    //    UpdateButtonUI();
+    //}
 
-                // Actualizar indicadores visuales si existen
-                if (indicadorMicActivo != null) indicadorMicActivo.SetActive(false);
-                if (indicadorMicInactivo != null) indicadorMicInactivo.SetActive(true);
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Error al detener el micrófono: " + e.Message);
-        }
-    }
+    //void InitializeMicrophone()
+    //{
+    //    // Obtiene la lista de micrófonos disponibles
+    //    if (Microphone.devices.Length > 0)
+    //    {
+    //        selectedMicrophone = Microphone.devices[0]; // Usa el primer micrófono disponible
+    //        Debug.Log("Micrófono seleccionado: " + selectedMicrophone);
+    //    }
+    //    else
+    //    {
+    //        Debug.LogError("No se detectaron micrófonos en el dispositivo.");
+    //    }
+    //}
 
-    private void UpdateButtonUI()
-    {
-        // Actualiza las variables int según el estado actual
-        permissionStatus = hasMicPermission ? 1 : 0;
-        micStatus = isMicrophoneOn ? 1 : 0;
+    //public void ToggleMicrophone()
+    //{
+    //    if (!hasMicPermission)
+    //    {
+    //        RequestMicrophonePermission();
+    //        return;
+    //    }
 
-        // Actualiza estados de los botones
-        if (btnActivarMic != null)
-        {
-            btnActivarMic.interactable = hasMicPermission && !isMicrophoneOn;
-        }
+    //    isMicrophoneOn = !isMicrophoneOn;
 
-        if (btnDesactivarMic != null)
-        {
-            btnDesactivarMic.interactable = hasMicPermission && isMicrophoneOn;
-        }
+    //    if (isMicrophoneOn)
+    //    {
+    //        StartMicrophone();
+    //    }
+    //    else
+    //    {
+    //        StopMicrophone();
+    //    }
 
-        // Actualizar indicadores visuales
-        if (indicadorMicActivo != null)
-        {
-            indicadorMicActivo.SetActive(isMicrophoneOn);
-        }
+    //    UpdateButtonUI();
+    //}
 
-        if (indicadorMicInactivo != null)
-        {
-            indicadorMicInactivo.SetActive(!isMicrophoneOn);
-        }
+    //void StartMicrophone()
+    //{
+    //    try
+    //    {
+    //        if (selectedMicrophone != null)
+    //        {
+    //            // Iniciar grabación con el micrófono (longitud de 10 segundos con loop)
+    //            microphoneClip = Microphone.Start(selectedMicrophone, true, 10, 44100);
+    //            Debug.Log("Micrófono activado");
+    //            micStatus = 1;
 
-        // Para depuración
-        Debug.Log($"Estado actual: Permiso={permissionStatus}, Micrófono={micStatus}");
-    }
+    //            // Actualizar indicadores visuales si existen
+    //            if (indicadorMicActivo != null) indicadorMicActivo.SetActive(true);
+    //            if (indicadorMicInactivo != null) indicadorMicInactivo.SetActive(false);
+    //        }
+    //        else
+    //        {
+    //            Debug.LogError("No hay micrófono seleccionado.");
+    //            isMicrophoneOn = false;
+    //            micStatus = 0;
+    //        }
+    //    }
+    //    catch (System.Exception e)
+    //    {
+    //        Debug.LogError("Error al iniciar el micrófono: " + e.Message);
+    //        isMicrophoneOn = false;
+    //        micStatus = 0;
+    //    }
+    //}
 
-    public int GetMicStatus()
-    {
-        return micStatus; // 0=apagado, 1=encendido
-    }
+    //void StopMicrophone()
+    //{
+    //    try
+    //    {
+    //        if (selectedMicrophone != null && Microphone.IsRecording(selectedMicrophone))
+    //        {
+    //            Microphone.End(selectedMicrophone);
+    //            Debug.Log("Micrófono desactivado");
+    //            micStatus = 0;
 
-    public int GetPermissionStatus()
-    {
-        return permissionStatus; // 0=sin permiso, 1=con permiso
-    }
+    //            // Actualizar indicadores visuales si existen
+    //            if (indicadorMicActivo != null) indicadorMicActivo.SetActive(false);
+    //            if (indicadorMicInactivo != null) indicadorMicInactivo.SetActive(true);
+    //        }
+    //    }
+    //    catch (System.Exception e)
+    //    {
+    //        Debug.LogError("Error al detener el micrófono: " + e.Message);
+    //    }
+    //}
 
-    // Los métodos GetAceptaStatus y GetRechazaStatus se han eliminado
-    // ya que son redundantes con GetPermissionStatus
+    //private void UpdateButtonUI()
+    //{
+    //    // Actualiza las variables int según el estado actual
+    //    permissionStatus = hasMicPermission ? 1 : 0;
+    //    micStatus = isMicrophoneOn ? 1 : 0;
 
-    void OnDestroy()
-    {
-        // Asegúrate de que el micrófono se detenga cuando se destruya este objeto
-        if (selectedMicrophone != null && Microphone.IsRecording(selectedMicrophone))
-        {
-            Microphone.End(selectedMicrophone);
-        }
-    }
+    //    // Actualiza estados de los botones
+    //    if (btnActivarMic != null)
+    //    {
+    //        btnActivarMic.interactable = hasMicPermission && !isMicrophoneOn;
+    //    }
 
-    // Método opcional para acceder al estado del micrófono desde otros scripts
-    public bool IsMicrophoneActive()
-    {
-        return isMicrophoneOn && hasMicPermission;
-    }
+    //    if (btnDesactivarMic != null)
+    //    {
+    //        btnDesactivarMic.interactable = hasMicPermission && isMicrophoneOn;
+    //    }
 
-    // Método opcional para obtener el AudioClip del micrófono
-    public AudioClip GetMicrophoneClip()
-    {
-        return microphoneClip;
-    }
+    //    // Actualizar indicadores visuales
+    //    if (indicadorMicActivo != null)
+    //    {
+    //        indicadorMicActivo.SetActive(isMicrophoneOn);
+    //    }
+
+    //    if (indicadorMicInactivo != null)
+    //    {
+    //        indicadorMicInactivo.SetActive(!isMicrophoneOn);
+    //    }
+
+    //    // Para depuración
+    //    Debug.Log($"Estado actual: Permiso={permissionStatus}, Micrófono={micStatus}");
+    //}
+
+    //public int GetMicStatus()
+    //{
+    //    return micStatus; // 0=apagado, 1=encendido
+    //}
+
+    //public int GetPermissionStatus()
+    //{
+    //    return permissionStatus; // 0=sin permiso, 1=con permiso
+    //}
+
+    //void OnDestroy()
+    //{
+    //    // Asegúrate de que el micrófono se detenga cuando se destruya este objeto
+    //    if (selectedMicrophone != null && Microphone.IsRecording(selectedMicrophone))
+    //    {
+    //        Microphone.End(selectedMicrophone);
+    //    }
+    //}
+
+    //// Método opcional para acceder al estado del micrófono desde otros scripts
+    //public bool IsMicrophoneActive()
+    //{
+    //    return isMicrophoneOn && hasMicPermission;
+    //}
+
+    //// Método opcional para obtener el AudioClip del micrófono
+    //public AudioClip GetMicrophoneClip()
+    //{
+    //    return microphoneClip;
+    //}
 }

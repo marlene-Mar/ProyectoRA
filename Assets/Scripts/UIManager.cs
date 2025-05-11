@@ -16,8 +16,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject InsSentado;
     [SerializeField] private GameObject InsPata;
     [SerializeField] private GameObject EntSentado;
+    [SerializeField] private GameObject EntPata;
     [SerializeField] private GameObject Trufoso;
-    [SerializeField] private GameObject OtrosPerros;
+    [SerializeField] private GameObject Trufosos;
 
     // Referencia a la cámara que activas/desactivas
     [SerializeField] private GameObject camara;
@@ -59,8 +60,9 @@ public class UIManager : MonoBehaviour
         if (InsSentado) InsSentado.SetActive(panelToShow == InsSentado);
         if (InsPata) InsPata.SetActive(panelToShow == InsPata);
         if (EntSentado) EntSentado.SetActive(panelToShow == EntSentado);
+        if (EntPata) EntPata.SetActive(panelToShow == EntPata);
         if (Trufoso) Trufoso.SetActive(panelToShow == Trufoso);
-        if (OtrosPerros) OtrosPerros.SetActive(panelToShow == OtrosPerros);
+        if (Trufosos) Trufosos.SetActive(panelToShow == Trufosos);
     }
 
     public void GoToHome()
@@ -95,10 +97,10 @@ public class UIManager : MonoBehaviour
         camara.SetActive(true);
     }
 
-    public void otrosPerros()
+    public void trufosos()
     {
         Debug.Log("Perro seleccionado sin animar");
-        ShowOnlyPanel(OtrosPerros);
+        ShowOnlyPanel(Trufosos);
         camara.SetActive(true);
     }
 
@@ -142,8 +144,7 @@ public class UIManager : MonoBehaviour
         else if (Chihuahua == 1 && PataSel == 1)
         {
             Debug.Log("Entrenando Chihuahua");
-            // Panel de entrenamiento pata pendiente
-            //ShowOnlyPanel(pataEntrenamientoPanel);
+            ShowOnlyPanel(EntPata);
             camara.SetActive(true);
         }
         else
@@ -165,11 +166,5 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log("Saliendo de la app");
         Application.Quit();
-    }
-
-    // Si necesitas cambiar escenas en el futuro, puedes usar este método
-    public void LoadSceneByName(string sceneName)
-    {
-        SceneManager.LoadScene(sceneName);
     }
 }
