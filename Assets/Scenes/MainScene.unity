@@ -774,6 +774,7 @@ MonoBehaviour:
   modeloCorazon: {fileID: 51070550}
   botonGalleta: {fileID: 272489542}
   botonAcariciar: {fileID: 1400090768}
+  botonPelota: {fileID: 1431375155}
 --- !u!4 &73862749
 Transform:
   m_ObjectHideFlags: 0
@@ -9811,7 +9812,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1431375158}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 73862748}
+        m_TargetAssemblyTypeName: VoiceCommandController, Assembly-CSharp
+        m_MethodName: ClickPelota
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1431375158
 MonoBehaviour:
   m_ObjectHideFlags: 0

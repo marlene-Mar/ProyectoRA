@@ -13,6 +13,7 @@
 //    // Definición de los triggers para las animaciones
 //    private readonly int triggerSentado = Animator.StringToHash("Sentado");
 //    private readonly int triggerPata = Animator.StringToHash("Pata");
+//    private readonly int triggerInicial = Animator.StringToHash("Inicial"); // Trigger para volver a pose inicial
 
 //    // Palabras clave para activar las animaciones (en minúsculas)
 //    [Header("Comandos de voz")]
@@ -29,12 +30,14 @@
 //    [SerializeField] private GameObject modeloAdmiracion;
 //    [SerializeField] private GameObject modeloCorazon;
 //    [SerializeField] private GameObject botonGalleta;
+//    [SerializeField] private GameObject botonAcariciar;
 
 //    // Para el sistema de nivel de entrenamiento
 //    private int nivelActual = 1;
 //    private int pasoActual = 0;
 //    private bool esperandoComando = false;
 //    private bool esperandoGalleta = false;
+//    private bool esperandoAcariciar = false;
 //    private bool comandoComprendido = false;
 
 //    // Para evitar la activación múltiple de animaciones
@@ -88,6 +91,7 @@
 //        if (modeloAdmiracion != null) modeloAdmiracion.SetActive(false);
 //        if (modeloCorazon != null) modeloCorazon.SetActive(false);
 //        if (botonGalleta != null) botonGalleta.SetActive(false);
+//        if (botonAcariciar != null) botonAcariciar.SetActive(false);
 
 //        // Iniciar el sistema de entrenamiento
 //        StartCoroutine(IniciarEntrenamiento());
@@ -111,6 +115,9 @@
 //        {
 //            levelText.text = "Nivel: " + nivelActual;
 //        }
+
+//        // Reiniciar la animación antes de comenzar el nivel
+//        ReiniciarAnimacion();
 
 //        // Avanzar al primer paso del nivel 1
 //        AvanzarPasoNivel1();
@@ -161,6 +168,59 @@
 //        }
 //    }
 
+//    private void IniciarNivel2()
+//    {
+//        nivelActual = 2;
+//        pasoActual = 0;
+
+//        if (levelText != null)
+//        {
+//            levelText.text = "Nivel: " + nivelActual;
+//        }
+
+//        // Reiniciar la animación antes de comenzar el nivel
+//        ReiniciarAnimacion();
+
+//        // Avanzar al primer paso del nivel 2
+//        AvanzarPasoNivel2();
+//    }
+
+//    private void AvanzarPasoNivel2()
+//    {
+//        pasoActual++;
+
+//        switch (pasoActual)
+//        {
+//            case 1:
+//                // Mostrar instrucción para mostrar galleta
+//                MostrarInstruccion("Muestra galleta, dándole clic");
+//                if (botonGalleta != null) botonGalleta.SetActive(true);
+//                esperandoGalleta = true;
+//                break;
+
+//            case 2:
+//                // Pedir que diga el comando
+//                MostrarInstruccion("Di el comando: \"Siéntate\" o \"Sentado\"");
+//                esperandoComando = true;
+//                break;
+
+//            case 3:
+//                // Instrucción para acariciar al perro
+//                MostrarInstruccion("Acaricia a tu perrito, dando clic en la mano");
+//                if (botonAcariciar != null) botonAcariciar.SetActive(true);
+//                esperandoAcariciar = true;
+//                break;
+
+//            case 4:
+//                // Mostrar mensaje de refuerzo y avance de nivel
+//                MostrarInstruccion("Muy bien, tu perrito ya no necesita más premios para hacer el comando.");
+
+//                // Esperar un momento y luego avanzar
+//                StartCoroutine(AvanzarDeNivel(5f));
+//                break;
+//        }
+//    }
+
 //    private IEnumerator AvanzarDeNivel(float tiempoEspera)
 //    {
 //        yield return new WaitForSeconds(tiempoEspera);
@@ -176,11 +236,24 @@
 //        }
 
 //        // Restablecer el perro a su animación inicial
+//        ReiniciarAnimacion();
+
 //        yield return new WaitForSeconds(5f);
 
-//        // Aquí iría la lógica para el siguiente nivel...
-//        // Por ahora volvemos a iniciar el nivel 1 para pruebas
-//        IniciarNivel1();
+//        // Decidir qué nivel iniciar
+//        if (nivelActual == 2)
+//        {
+//            IniciarNivel2();
+//        }
+//        else if (nivelActual == 3)
+//        {
+//            // Para implementaciones futuras de Nivel 3
+//            // IniciarNivel3();
+
+//            // Por ahora, volvemos al nivel 1 para pruebas
+//            nivelActual = 0;
+//            IniciarNivel1();
+//        }
 //    }
 
 //    private IEnumerator MostrarYOcultarModelo(GameObject modelo, float duracion)
@@ -208,18 +281,27 @@
 //            {
 //                esperandoComando = false;
 
-//                if (comandoComprendido)
+//                if (nivelActual == 1)
 //                {
-//                    // El perro ya comprende el comando
-//                    EjecutarComando("sentado");
-//                    AvanzarPasoNivel1();
+//                    if (comandoComprendido)
+//                    {
+//                        // El perro ya comprende el comando (Nivel 1)
+//                        EjecutarComando("sentado");
+//                        AvanzarPasoNivel1();
+//                    }
+//                    else
+//                    {
+//                        // El perro no comprende aún el comando (Nivel 1)
+//                        StartCoroutine(MostrarYOcultarModelo(modeloInterrogacion, 2f));
+//                        MostrarFeedback("¿?");
+//                        AvanzarPasoNivel1();
+//                    }
 //                }
-//                else
+//                else if (nivelActual == 2)
 //                {
-//                    // El perro no comprende aún el comando
-//                    StartCoroutine(MostrarYOcultarModelo(modeloInterrogacion, 2f));
-//                    MostrarFeedback("¿?");
-//                    AvanzarPasoNivel1();
+//                    // En el nivel 2 el perro ya comprende el comando
+//                    EjecutarComando("sentado");
+//                    AvanzarPasoNivel2();
 //                }
 //            }
 //        }
@@ -264,6 +346,11 @@
 //            case "sentado":
 //                if (characterAnimator != null)
 //                {
+//                    // Primero reiniciamos cualquier animación en curso
+//                    characterAnimator.ResetTrigger(triggerPata);
+//                    characterAnimator.ResetTrigger(triggerInicial);
+
+//                    // Ejecutamos la animación solicitada
 //                    characterAnimator.SetTrigger(triggerSentado);
 //                    MostrarFeedback("¡Sentado!");
 //                    StartCoroutine(EsperarFinAnimacion(1.5f)); // Ajusta este tiempo según la duración de tu animación
@@ -273,6 +360,11 @@
 //            case "pata":
 //                if (characterAnimator != null)
 //                {
+//                    // Primero reiniciamos cualquier animación en curso
+//                    characterAnimator.ResetTrigger(triggerSentado);
+//                    characterAnimator.ResetTrigger(triggerInicial);
+
+//                    // Ejecutamos la animación solicitada
 //                    characterAnimator.SetTrigger(triggerPata);
 //                    MostrarFeedback("¡Dame la pata!");
 //                    StartCoroutine(EsperarFinAnimacion(1.5f)); // Ajusta este tiempo según la duración de tu animación
@@ -365,18 +457,64 @@
 //            esperandoGalleta = false;
 //            botonGalleta.SetActive(false);
 
-//            if (pasoActual == 2)
+//            if (nivelActual == 1)
 //            {
-//                // Primera vez con la galleta
+//                if (pasoActual == 2)
+//                {
+//                    // Primera vez con la galleta (Nivel 1)
+//                    StartCoroutine(MostrarYOcultarModelo(modeloAdmiracion, 2f));
+//                    MostrarFeedback("¡!");
+//                    AvanzarPasoNivel1();
+//                }
+//                else if (pasoActual == 4)
+//                {
+//                    // Segunda vez con la galleta (recompensa Nivel 1)
+//                    AvanzarPasoNivel1();
+//                }
+//            }
+//            else if (nivelActual == 2)
+//            {
+//                // Galleta en el Nivel 2
 //                StartCoroutine(MostrarYOcultarModelo(modeloAdmiracion, 2f));
 //                MostrarFeedback("¡!");
-//                AvanzarPasoNivel1();
+//                AvanzarPasoNivel2();
 //            }
-//            else if (pasoActual == 4)
+//        }
+//    }
+
+//    // Método para el botón acariciar
+//    public void ClickAcariciar()
+//    {
+//        if (esperandoAcariciar)
+//        {
+//            esperandoAcariciar = false;
+//            botonAcariciar.SetActive(false);
+
+//            if (nivelActual == 2 && pasoActual == 3)
 //            {
-//                // Segunda vez con la galleta (recompensa)
-//                AvanzarPasoNivel1();
+//                StartCoroutine(MostrarYOcultarModelo(modeloCorazon, 2f));
+//                MostrarFeedback("♥");
+//                AvanzarPasoNivel2();
 //            }
+//        }
+//    }
+
+//    // Método para reiniciar a la animación inicial
+//    private void ReiniciarAnimacion()
+//    {
+//        if (characterAnimator != null)
+//        {
+//            // Resetear todos los parámetros y estados del animator
+//            characterAnimator.SetTrigger(triggerInicial);
+
+//            // También podemos forzar regresar a la animación inicial
+//            characterAnimator.Play("Inicial", 0, 0f);
+
+//            // Asegurarse de que ningún estado de animación previa interfiera
+//            characterAnimator.ResetTrigger(triggerSentado);
+//            characterAnimator.ResetTrigger(triggerPata);
+
+//            Debug.Log("Reiniciando animación del perro a estado inicial");
 //        }
 //    }
 //}
@@ -414,6 +552,7 @@ public class VoiceCommandController : MonoBehaviour
     [SerializeField] private GameObject modeloCorazon;
     [SerializeField] private GameObject botonGalleta;
     [SerializeField] private GameObject botonAcariciar;
+    [SerializeField] private GameObject botonPelota;
 
     // Para el sistema de nivel de entrenamiento
     private int nivelActual = 1;
@@ -421,6 +560,7 @@ public class VoiceCommandController : MonoBehaviour
     private bool esperandoComando = false;
     private bool esperandoGalleta = false;
     private bool esperandoAcariciar = false;
+    private bool esperandoPelota = false;
     private bool comandoComprendido = false;
 
     // Para evitar la activación múltiple de animaciones
@@ -475,6 +615,7 @@ public class VoiceCommandController : MonoBehaviour
         if (modeloCorazon != null) modeloCorazon.SetActive(false);
         if (botonGalleta != null) botonGalleta.SetActive(false);
         if (botonAcariciar != null) botonAcariciar.SetActive(false);
+        if (botonPelota != null) botonPelota.SetActive(false);
 
         // Iniciar el sistema de entrenamiento
         StartCoroutine(IniciarEntrenamiento());
@@ -630,10 +771,13 @@ public class VoiceCommandController : MonoBehaviour
         }
         else if (nivelActual == 3)
         {
-            // Para implementaciones futuras de Nivel 3
-            // IniciarNivel3();
-
-            // Por ahora, volvemos al nivel 1 para pruebas
+            IniciarNivel3();
+        }
+        else if (nivelActual > 3)
+        {
+            // Si ya completamos todos los niveles, reiniciamos el entrenamiento
+            MostrarInstruccion("Reiniciando entrenamiento...");
+            yield return new WaitForSeconds(3f);
             nivelActual = 0;
             IniciarNivel1();
         }
@@ -685,6 +829,12 @@ public class VoiceCommandController : MonoBehaviour
                     // En el nivel 2 el perro ya comprende el comando
                     EjecutarComando("sentado");
                     AvanzarPasoNivel2();
+                }
+                else if (nivelActual == 3)
+                {
+                    // En el nivel 3 el perro comprende perfectamente el comando
+                    EjecutarComando("sentado");
+                    AvanzarPasoNivel3();
                 }
             }
         }
@@ -879,10 +1029,96 @@ public class VoiceCommandController : MonoBehaviour
                 MostrarFeedback("♥");
                 AvanzarPasoNivel2();
             }
+            else if (nivelActual == 3 && pasoActual == 2)
+            {
+                StartCoroutine(MostrarYOcultarModelo(modeloCorazon, 2f));
+                MostrarFeedback("♥");
+                AvanzarPasoNivel3();
+            }
         }
     }
 
-    // Método para reiniciar a la animación inicial
+    // Método para el botón pelota
+    public void ClickPelota()
+    {
+        if (esperandoPelota)
+        {
+            esperandoPelota = false;
+            botonPelota.SetActive(false);
+
+            if (nivelActual == 3 && pasoActual == 3)
+            {
+                StartCoroutine(MostrarYOcultarModelo(modeloCorazon, 2f));
+                MostrarFeedback("♥");
+                AvanzarPasoNivel3();
+            }
+        }
+    }
+
+    private void IniciarNivel3()
+    {
+        nivelActual = 3;
+        pasoActual = 0;
+
+        if (levelText != null)
+        {
+            levelText.text = "Nivel: " + nivelActual;
+        }
+
+        // Reiniciar la animación antes de comenzar el nivel
+        ReiniciarAnimacion();
+
+        // Avanzar al primer paso del nivel 3
+        AvanzarPasoNivel3();
+    }
+
+    private void AvanzarPasoNivel3()
+    {
+        pasoActual++;
+
+        switch (pasoActual)
+        {
+            case 1:
+                // Mostrar instrucción para decir el comando directamente
+                MostrarInstruccion("Di el comando: \"Siéntate\" o \"Sentado\"");
+                esperandoComando = true;
+                break;
+
+            case 2:
+                // Instrucción para acariciar al perro
+                MostrarInstruccion("¡Muy bien! Tu perro ya sabe el comando. Acaricia a tu perrito, dando clic en la mano");
+                if (botonAcariciar != null) botonAcariciar.SetActive(true);
+                esperandoAcariciar = true;
+                break;
+
+            case 3:
+                // Instrucción para jugar con el perro
+                MostrarInstruccion("Tu perrito merece una mayor recompensa, ¡juega con él! Da clic en la pelota");
+                if (botonPelota != null) botonPelota.SetActive(true);
+                esperandoPelota = true;
+                break;
+
+            case 4:
+                // Mostrar mensaje de finalización
+                MostrarInstruccion("¡Finalizamos el entrenamiento, suerte con tu peludo!");
+
+                // Esperar y reiniciar el entrenamiento
+                StartCoroutine(FinalizarEntrenamiento());
+                break;
+        }
+    }
+
+    private IEnumerator FinalizarEntrenamiento()
+    {
+        yield return new WaitForSeconds(5f);
+        MostrarInstruccion("Reiniciando entrenamiento...");
+
+        yield return new WaitForSeconds(3f);
+
+        // Reiniciar todo el proceso
+        nivelActual = 0;
+        IniciarNivel1();
+    }    // Método para reiniciar a la animación inicial
     private void ReiniciarAnimacion()
     {
         if (characterAnimator != null)
