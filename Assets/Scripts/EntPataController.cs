@@ -2,7 +2,7 @@
 using System.Collections;
 using TMPro;
 
-public class EntrenamientoPataController : MonoBehaviour
+public class EntPataController : MonoBehaviour
 {
     [SerializeField] private RecordingCanvas recordingCanvas;
     [SerializeField] private Animator characterAnimator;
@@ -10,12 +10,14 @@ public class EntrenamientoPataController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI instructionText;
     [SerializeField] private TextMeshProUGUI levelText;
 
-    // Definición de los triggers para las animaciones
+    // Definición de los triggers y parámetros para las animaciones
+    private readonly int triggerSentado = Animator.StringToHash("Sentado");
     private readonly int triggerPata = Animator.StringToHash("Pata");
-    private readonly int triggerInicial = Animator.StringToHash("Inicial"); // Trigger para volver a pose inicial
+    private readonly int paramReset = Animator.StringToHash("Reset"); // Parámetro booleano para volver a pose inicial
 
     // Palabras clave para activar las animaciones (en minúsculas)
     [Header("Comandos de voz")]
+    [SerializeField] private string[] comandosSentado = { "sentado", "siéntate" };
     [SerializeField] private string[] comandosPata = { "pata", "dame la pata", "la pata" };
 
     // Tiempo que se mostrará el texto de retroalimentación
@@ -35,11 +37,11 @@ public class EntrenamientoPataController : MonoBehaviour
     private int nivelActual = 1;
     private int pasoActual = 0;
     private bool esperandoComando = false;
+    private bool esperandoComandoSentado = false;
     private bool esperandoGalleta = false;
     private bool esperandoAcariciar = false;
     private bool esperandoPelota = false;
     private bool comandoComprendido = false;
-    private bool mostradoMensajeInicial = false;
 
     // Para evitar la activación múltiple de animaciones
     private bool esperandoFinAnimacion = false;
@@ -104,14 +106,6 @@ public class EntrenamientoPataController : MonoBehaviour
         // Esperar un momento para que todo se inicialice correctamente
         yield return new WaitForSeconds(1f);
 
-        // Mostrar mensaje inicial recomendando entrenar primero "Sentado"
-        if (!mostradoMensajeInicial)
-        {
-            MostrarInstruccion("Para aprender este comando se recomienda primero pasar con sentado");
-            mostradoMensajeInicial = true;
-            yield return new WaitForSeconds(4f);
-        }
-
         // Iniciar el primer nivel
         IniciarNivel1();
     }
@@ -140,36 +134,48 @@ public class EntrenamientoPataController : MonoBehaviour
         switch (pasoActual)
         {
             case 1:
+                // Primero pedimos que el perro se siente
+                MostrarInstruccion("Primero di: \"Siéntate\" o \"Sentado\"");
+                esperandoComandoSentado = true;
+                break;
+
+            case 2:
                 // Mostrar instrucción para decir el comando
-                MostrarInstruccion("Di el comando: \"Pata\", \"Dame la pata\" o \"La pata\"");
+                MostrarInstruccion("Ahora di: \"Pata\" o \"Dame la pata\"");
                 esperandoComando = true;
                 comandoComprendido = false;
                 break;
 
-            case 2:
+            case 3:
                 // Mostrar instrucción para mostrar galleta
                 MostrarInstruccion("Muestra galleta, dándole clic");
                 if (botonGalleta != null) botonGalleta.SetActive(true);
                 esperandoGalleta = true;
                 break;
 
-            case 3:
+            case 4:
+                // Pedir que se siente de nuevo
+                MostrarInstruccion("Di nuevamente: \"Siéntate\" o \"Sentado\"");
+                esperandoComandoSentado = true;
+                break;
+
+            case 5:
                 // Volver a pedir que diga el comando
-                MostrarInstruccion("Di nuevamente el comando: \"Pata\", \"Dame la pata\" o \"La pata\"");
+                MostrarInstruccion("Di otra vez: \"Pata\" o \"Dame la pata\"");
                 esperandoComando = true;
                 comandoComprendido = true;
                 break;
 
-            case 4:
+            case 6:
                 // Pedir que dé la galleta
                 MostrarInstruccion("Da la galleta, dando clic");
                 if (botonGalleta != null) botonGalleta.SetActive(true);
                 esperandoGalleta = true;
                 break;
 
-            case 5:
+            case 7:
                 // Mostrar mensaje de avance de nivel
-                MostrarInstruccion("¡Lograste aprender este comando!");
+                MostrarInstruccion("¡Lograste enseñar el comando Pata!");
                 StartCoroutine(MostrarYOcultarModelo(modeloCorazon, 3f));
 
                 // Esperar un momento y luego avanzar
@@ -202,98 +208,39 @@ public class EntrenamientoPataController : MonoBehaviour
         switch (pasoActual)
         {
             case 1:
+                // Primero pedimos que el perro se siente
+                MostrarInstruccion("Primero di: \"Siéntate\" o \"Sentado\"");
+                esperandoComandoSentado = true;
+                break;
+
+            case 2:
                 // Mostrar instrucción para mostrar galleta
                 MostrarInstruccion("Muestra galleta, dándole clic");
                 if (botonGalleta != null) botonGalleta.SetActive(true);
                 esperandoGalleta = true;
                 break;
 
-            case 2:
-                // Pedir que diga el comando
-                MostrarInstruccion("Di el comando: \"Pata\", \"Dame la pata\" o \"La pata\"");
+            case 3:
+                // Pedir que diga el comando de pata
+                MostrarInstruccion("Di: \"Pata\" o \"Dame la pata\"");
                 esperandoComando = true;
                 break;
 
-            case 3:
+            case 4:
                 // Instrucción para acariciar al perro
                 MostrarInstruccion("Acaricia a tu perrito, dando clic en la mano");
                 if (botonAcariciar != null) botonAcariciar.SetActive(true);
                 esperandoAcariciar = true;
                 break;
 
-            case 4:
+            case 5:
                 // Mostrar mensaje de refuerzo y avance de nivel
-                MostrarInstruccion("Muy bien, tu perrito ya no necesita más premios para hacer el comando.");
+                MostrarInstruccion("Muy bien, tu perrito ya casi no necesita premios para dar la pata.");
 
                 // Esperar un momento y luego avanzar
                 StartCoroutine(AvanzarDeNivel(5f));
                 break;
         }
-    }
-
-    private void IniciarNivel3()
-    {
-        nivelActual = 3;
-        pasoActual = 0;
-
-        if (levelText != null)
-        {
-            levelText.text = "Nivel: " + nivelActual;
-        }
-
-        // Reiniciar la animación antes de comenzar el nivel
-        ReiniciarAnimacion();
-
-        // Avanzar al primer paso del nivel 3
-        AvanzarPasoNivel3();
-    }
-
-    private void AvanzarPasoNivel3()
-    {
-        pasoActual++;
-
-        switch (pasoActual)
-        {
-            case 1:
-                // Mostrar instrucción para decir el comando directamente
-                MostrarInstruccion("Di el comando: \"Pata\", \"Dame la pata\" o \"La pata\"");
-                esperandoComando = true;
-                break;
-
-            case 2:
-                // Instrucción para acariciar al perro
-                MostrarInstruccion("¡Muy bien! Tu perro ya sabe el comando. Acaricia a tu perrito, dando clic en la mano");
-                if (botonAcariciar != null) botonAcariciar.SetActive(true);
-                esperandoAcariciar = true;
-                break;
-
-            case 3:
-                // Instrucción para jugar con el perro
-                MostrarInstruccion("Tu perrito merece una mayor recompensa, ¡juega con él! Da clic en la pelota");
-                if (botonPelota != null) botonPelota.SetActive(true);
-                esperandoPelota = true;
-                break;
-
-            case 4:
-                // Mostrar mensaje de finalización
-                MostrarInstruccion("¡Finalizamos el entrenamiento, suerte con tu peludo!");
-
-                // Esperar y reiniciar el entrenamiento
-                StartCoroutine(FinalizarEntrenamiento());
-                break;
-        }
-    }
-
-    private IEnumerator FinalizarEntrenamiento()
-    {
-        yield return new WaitForSeconds(5f);
-        MostrarInstruccion("Reiniciando entrenamiento...");
-
-        yield return new WaitForSeconds(3f);
-
-        // Reiniciar todo el proceso
-        nivelActual = 0;
-        IniciarNivel1();
     }
 
     private IEnumerator AvanzarDeNivel(float tiempoEspera)
@@ -334,24 +281,6 @@ public class EntrenamientoPataController : MonoBehaviour
         }
     }
 
-    // Método para reiniciar a la animación inicial
-    private void ReiniciarAnimacion()
-    {
-        if (characterAnimator != null)
-        {
-            // Resetear todos los parámetros y estados del animator
-            characterAnimator.SetTrigger(triggerInicial);
-
-            // También podemos forzar regresar a la animación inicial
-            characterAnimator.Play("Inicial", 0, 0f);
-
-            // Asegurarse de que ningún estado de animación previa interfiera
-            characterAnimator.ResetTrigger(triggerPata);
-
-            Debug.Log("Reiniciando animación del perro a estado inicial");
-        }
-    }
-
     private IEnumerator MostrarYOcultarModelo(GameObject modelo, float duracion)
     {
         if (modelo != null)
@@ -369,8 +298,32 @@ public class EntrenamientoPataController : MonoBehaviour
 
         Debug.Log("Texto reconocido: " + textoLower);
 
-        // Verificar si estamos esperando un comando de voz para el entrenamiento
-        if (esperandoComando)
+        // Verificar si estamos esperando comando sentado primero (siempre debe ejecutarse antes del comando pata)
+        if (esperandoComandoSentado)
+        {
+            if (ContienePalabra(textoLower, comandosSentado))
+            {
+                esperandoComandoSentado = false;
+                // Ejecutar comando sentado (en todos los niveles se comprende)
+                EjecutarComando("sentado");
+
+                // Avanzar al siguiente paso según el nivel
+                if (nivelActual == 1)
+                {
+                    AvanzarPasoNivel1();
+                }
+                else if (nivelActual == 2)
+                {
+                    AvanzarPasoNivel2();
+                }
+                else if (nivelActual == 3)
+                {
+                    AvanzarPasoNivel3();
+                }
+            }
+        }
+        // Verificar si estamos esperando comando de pata para el entrenamiento
+        else if (esperandoComando)
         {
             // Verificar si el comando corresponde a "Pata"
             if (ContienePalabra(textoLower, comandosPata))
@@ -407,13 +360,27 @@ public class EntrenamientoPataController : MonoBehaviour
                 }
             }
         }
-        // La lógica original para cuando no estamos en modo entrenamiento
+        // La lógica para cuando no estamos en modo entrenamiento específico
         else if (!esperandoFinAnimacion)
         {
-            // Verificar si el comando corresponde a "Pata"
-            if (ContienePalabra(textoLower, comandosPata))
+            // Verificar si el comando corresponde a "Sentado"
+            if (ContienePalabra(textoLower, comandosSentado))
             {
-                EjecutarComando("pata");
+                EjecutarComando("sentado");
+            }
+            // Verificar si el comando corresponde a "Pata"
+            else if (ContienePalabra(textoLower, comandosPata))
+            {
+                // Verificamos si el perro está sentado para dar la pata
+                if (characterAnimator.GetCurrentAnimatorStateInfo(0).IsName("Sentado"))
+                {
+                    EjecutarComando("pata");
+                }
+                else
+                {
+                    // Si el perro no está sentado, mostrar un mensaje de que primero debe sentarse
+                    MostrarFeedback("¡Primero siéntate!");
+                }
             }
         }
     }
@@ -440,16 +407,35 @@ public class EntrenamientoPataController : MonoBehaviour
 
         switch (comando.ToLower())
         {
+            case "sentado":
+                if (characterAnimator != null)
+                {
+                    // Desactivamos el reset si estaba activo
+                    characterAnimator.SetBool(paramReset, false);
+
+                    // Reset del trigger de pata si estaba activo
+                    characterAnimator.ResetTrigger(triggerPata);
+
+                    // Ejecutamos la animación de sentado
+                    characterAnimator.SetTrigger(triggerSentado);
+                    MostrarFeedback("¡Sentado!");
+                    StartCoroutine(EsperarFinAnimacion(1.5f));
+                }
+                break;
+
             case "pata":
                 if (characterAnimator != null)
                 {
-                    // Primero reiniciamos cualquier animación en curso
-                    characterAnimator.ResetTrigger(triggerInicial);
+                    // Para dar la pata, el perro primero debe estar sentado
+                    // Esto se verifica en ProcesarComandoVoz
 
-                    // Ejecutamos la animación solicitada
+                    // Desactivamos el reset si estaba activo
+                    characterAnimator.SetBool(paramReset, false);
+
+                    // Ejecutamos la animación de pata
                     characterAnimator.SetTrigger(triggerPata);
                     MostrarFeedback("¡Dame la pata!");
-                    StartCoroutine(EsperarFinAnimacion(1.5f)); // Ajusta este tiempo según la duración de tu animación
+                    StartCoroutine(EsperarFinAnimacion(1.5f));
                 }
                 break;
 
@@ -541,14 +527,14 @@ public class EntrenamientoPataController : MonoBehaviour
 
             if (nivelActual == 1)
             {
-                if (pasoActual == 2)
+                if (pasoActual == 3)
                 {
                     // Primera vez con la galleta (Nivel 1)
                     StartCoroutine(MostrarYOcultarModelo(modeloAdmiracion, 2f));
                     MostrarFeedback("¡!");
                     AvanzarPasoNivel1();
                 }
-                else if (pasoActual == 4)
+                else if (pasoActual == 6)
                 {
                     // Segunda vez con la galleta (recompensa Nivel 1)
                     AvanzarPasoNivel1();
@@ -572,7 +558,7 @@ public class EntrenamientoPataController : MonoBehaviour
             esperandoAcariciar = false;
             botonAcariciar.SetActive(false);
 
-            if (nivelActual == 2 && pasoActual == 3)
+            if (nivelActual == 2 && pasoActual == 4)
             {
                 StartCoroutine(MostrarYOcultarModelo(modeloCorazon, 2f));
                 MostrarFeedback("♥");
@@ -601,6 +587,109 @@ public class EntrenamientoPataController : MonoBehaviour
                 MostrarFeedback("♥");
                 AvanzarPasoNivel3();
             }
+        }
+    }
+
+    private void IniciarNivel3()
+    {
+        nivelActual = 3;
+        pasoActual = 0;
+
+        if (levelText != null)
+        {
+            levelText.text = "Nivel: " + nivelActual;
+        }
+
+        // Reiniciar la animación antes de comenzar el nivel
+        ReiniciarAnimacion();
+
+        // Avanzar al primer paso del nivel 3
+        AvanzarPasoNivel3();
+    }
+
+    private void AvanzarPasoNivel3()
+    {
+        pasoActual++;
+
+        switch (pasoActual)
+        {
+            case 1:
+                // Primero pedimos que el perro se siente
+                MostrarInstruccion("Primero di: \"Siéntate\" o \"Sentado\"");
+                esperandoComandoSentado = true;
+                break;
+
+            case 2:
+                // Instrucción para decir el comando de pata directamente
+                MostrarInstruccion("Ahora di: \"Pata\" o \"Dame la pata\"");
+                esperandoComando = true;
+                break;
+
+            case 3:
+                // Instrucción para acariciar al perro
+                MostrarInstruccion("¡Muy bien! Tu perro ya sabe el comando. Acaricia a tu perrito, dando clic en la mano");
+                if (botonAcariciar != null) botonAcariciar.SetActive(true);
+                esperandoAcariciar = true;
+                break;
+
+            case 4:
+                // Instrucción para jugar con el perro
+                MostrarInstruccion("Tu perrito merece una mayor recompensa, ¡juega con él! Da clic en la pelota");
+                if (botonPelota != null) botonPelota.SetActive(true);
+                esperandoPelota = true;
+                break;
+
+            case 5:
+                // Mostrar mensaje de finalización
+                MostrarInstruccion("¡Finalizamos el entrenamiento, suerte con tu peludo!");
+
+                // Esperar y reiniciar el entrenamiento
+                StartCoroutine(FinalizarEntrenamiento());
+                break;
+        }
+    }
+
+    private IEnumerator FinalizarEntrenamiento()
+    {
+        yield return new WaitForSeconds(5f);
+        MostrarInstruccion("Reiniciando entrenamiento...");
+
+        yield return new WaitForSeconds(3f);
+
+        // Reiniciar todo el proceso
+        nivelActual = 0;
+        IniciarNivel1();
+    }
+
+    // Método para reiniciar a la animación inicial
+    private void ReiniciarAnimacion()
+    {
+        if (characterAnimator != null)
+        {
+            // Reiniciar todos los parámetros
+            characterAnimator.Rebind();
+            characterAnimator.Update(0f);
+
+            // Establecer explícitamente el parámetro Reset
+            characterAnimator.SetBool(paramReset, true);
+
+            Debug.Log("Reiniciando animación usando Rebind y Reset=true");
+
+            // Asegurarse de que se reproduzca la animación por defecto
+            StartCoroutine(DesactivarResetDespuesDeTiempo(0.5f));
+        }
+    }
+
+    // Método para desactivar el parámetro Reset después de un tiempo
+    private IEnumerator DesactivarResetDespuesDeTiempo(float tiempoEspera)
+    {
+        yield return new WaitForSeconds(tiempoEspera);
+
+        // Desactivar el parámetro Reset una vez que la animación ya ha comenzado
+        if (characterAnimator != null)
+        {
+            characterAnimator.SetBool(paramReset, false);
+            Debug.Log("Parámetro Reset desactivado después de " + tiempoEspera + " segundos");
         }
     }
 }
