@@ -5,10 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
-    // Singleton para acceso fácil
     public static UIManager Instance { get; private set; }
 
-    // Referencias a todos los paneles UI (que reemplazarán las escenas)
+    //Paneles de la aplicación
     [SerializeField] private GameObject Menu;
     [SerializeField] private GameObject Trucos;
     [SerializeField] private GameObject Perros;
@@ -19,17 +18,21 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject EntPata;
     [SerializeField] private GameObject Trufoso;
     [SerializeField] private GameObject Trufosos;
-
-    // Referencia a la cámara que activas/desactivas
     [SerializeField] private GameObject camara;
 
-    // Variables de estado (las mismas que tienes ahora)
+    //Botones auxiliares para resetear datos al finalizar el entrenamiento
+    [SerializeField] private GameObject HomeEntSentado;
+    [SerializeField] private GameObject HomeEntPata;
+
+    // Variables de estado
     public int Chihuahua = 0;
     public int SentadoSel = 0;
     public int PataSel = 0;
 
+    // URL de los marcadores a descargar 
     private string urlMarcadores = "https://drive.google.com/drive/folders/1Ik577slklY2LfqS4HS4PPy8ICC8acpBN?usp=sharing";
 
+   
     private void Awake()
     {
         // Configuración del singleton
@@ -46,11 +49,11 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        // Inicialmente mostrar solo el menú principal
+        // Inicialmente solo muestra el menú principal
         ShowOnlyPanel(Menu);
     }
 
-    // Función para mostrar solo un panel específico
+    // Función para mostrar solo el panel que el usuario elige
     public void ShowOnlyPanel(GameObject panelToShow)
     {
         if (Menu) Menu.SetActive(panelToShow == Menu);
@@ -65,11 +68,13 @@ public class UIManager : MonoBehaviour
         if (Trufosos) Trufosos.SetActive(panelToShow == Trufosos);
     }
 
+    // Método para ir al menú principal
     public void GoToHome()
     {
         ShowOnlyPanel(Menu);
     }
 
+    // Métodos para ir a los diferentes paneles
     public void GoToTrucos()
     {
         ShowOnlyPanel(Trucos);
@@ -85,54 +90,56 @@ public class UIManager : MonoBehaviour
         ShowOnlyPanel(Tips);
     }
 
+    // Método para descargar los marcadores
     public void DownloadMarcadores()
     {
         Application.OpenURL(urlMarcadores);  
     }
 
+    // Métodos para seleccionar los perros
     public void chihuahua()
     {
-        Debug.Log("Chihuahua seleccionado");
         ShowOnlyPanel(Trufoso);
         camara.SetActive(true);
     }
 
     public void trufosos()
     {
-        Debug.Log("Perro seleccionado sin animar");
         ShowOnlyPanel(Trufosos);
         camara.SetActive(true);
     }
 
+    // Métodos para regresar al panel de perros
     public void back()
     {
-        Debug.Log("Volviendo al menú de selección de perro");
         ShowOnlyPanel(Perros);
         camara.SetActive(false);
     }
 
+    // Métodos para seleccionar el perro a entrenar e ir a elegir truco
     public void OK()
     {
         Chihuahua = 1;
-        Debug.Log("Trufosos a entrenar, elegir truco:");
         ShowOnlyPanel(Trucos);
         camara.SetActive(true);
     }
 
+    // Métodos para seleccionar los trucos
     public void SentadoTru()
     {
-        Debug.Log("Pasos para seguir el comando Sentado");
-        ShowOnlyPanel(InsSentado);
+        PataSel = 0;
         SentadoSel = 1;
+        ShowOnlyPanel(InsSentado);
     }
 
     public void PataTru()
     {
-        Debug.Log("Pasos para seguir el comando Pata");
-        ShowOnlyPanel(InsPata);
+        SentadoSel = 0;
         PataSel = 1;
+        ShowOnlyPanel(InsPata);
     }
 
+    // Metodo para iniciar el entrenamiento
     public void Play()
     {
         if (Chihuahua == 1 && SentadoSel == 1)
@@ -160,6 +167,19 @@ public class UIManager : MonoBehaviour
                 ShowOnlyPanel(Trucos);
             }
         }
+    }
+    // Método específico para volver al Home desde pantallas de entrenamiento
+    public void Home2()
+    {
+        // Resetear selecciones de trucos
+        SentadoSel = 0;
+        PataSel = 0;
+
+        // Desactivar la cámara
+        if (camara) camara.SetActive(false);
+
+        // Volver al menú principal
+        ShowOnlyPanel(Menu);
     }
 
     public void Salir()
